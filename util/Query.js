@@ -4,9 +4,9 @@ class Query{
     login(username,pass){
         return db.execute(`select count(*) from dbs.users where username="${username}" and pass="${pass}" and emailVerified=1;`);
     }
-    signup(username,pass,fname,dob,email){
-        return db.execute(`insert into dbs.users(username,pass,fullname,date,mobile,nationality) 
-        values("${username}","${pass}","${fname}","${dob}","${email}","${name}","${mobile}","${nationality}");`);
+    signup(pass,fname,dob,email,mobile,nationality){
+        return db.execute(`insert into dbs.users(email,fullname,mobile,DOB,nationality,pass) 
+        values("${email}","${fname}","${mobile}","${dob}","${nationality}","${pass}");`);
     }
     checkUserExists(username){
         return db.execute(`select count(*) from dbs.users where username="${username}";`);

@@ -1,20 +1,21 @@
 const bcrypt=require('bcrypt');
-class Hash{
-    async hashFun(x){
-        console.log(x);
-        bcrypt.genSalt(15, function(err, salt) {
-            bcrypt.hash(x, salt, function(err, hash) {
-                if(err){
-                    return false;
-                }
-                else{
-                    return hash;
-                }
-            });
+let result={
+    res: false,
+    resultPass: ''
+};
+async function hashFun(x){    
+    bcrypt.genSalt(12, (err, salt) => {
+        bcrypt.hash(x, salt, (err, hash) => {
+            if(err){
+                console.log(err);
+            }
+            else{
+                result = {res: true, resultPass: hash};
+            }
         });
-    }
+    });
+    return result;
 }
 
 
-
-module.exports=Hash;
+module.exports.hashFun=hashFun;
