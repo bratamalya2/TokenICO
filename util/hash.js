@@ -21,9 +21,11 @@ function hashFun(req,res,next){
 
 
 function hashCompare(req,res,next){
-    Query.getHashedPassword(req.headers.email)
+    console.log(req.headers);
+    Query.getHashedPassword(req.headers.email,req.headers.isadmin)
             .then( result => { 
                 var x=result[0][0]["pass"];
+                console.log(`x ->  ${x}`);
                 bcrypt.compare(req.headers.pass, x, function(err, result) {
                     if(result){
                         res.locals.result = {res: true, pass: x}; 

@@ -68,8 +68,23 @@ app.post('/user/login', hashCompare, (req,res)=>{
     }
 });
 
-app.get('/user/checkuserexists', (req,res)=>{
-    Query.checkUserExists(req.query.username)
+app.get('/user/checkUserExists', (req,res)=>{
+    Query.checkUserExists(req.query.email)
+            .then((result) => {
+                if(result[0][0]["count(*)"]===0){
+                    res.send({ success: false });
+                }
+                else
+                    res.send({ success: true });
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(400).json({ success: false, error:'Bad request' });
+            });
+});
+
+app.get('/user/checkAdminExists', (req,res)=>{
+    Query.checkAdminExists(req.query.email)
             .then((result) => {
                 if(result[0][0]["count(*)"]===0){
                     res.send({ success: false });
@@ -125,7 +140,57 @@ app.post('/user/reset', hashedFun, (req,res)=>{
     } 
 });
 
+app.post('/admin/signup', hashedFun, (req,res) => {
+    if(res.locals.hashed.res){
+        Query.adminSignup(res.locals.hashed.resultPass, req.headers.email)
+            .then(() => {
+                res.send({success: true});
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(400).json({success: false, error:'Bad request', errno: err.errno});
+            });
+    }
+    else{
+        console.log('Failed to generate password');
+        res.send({success: false, error: 'Failed to generate password'});
+    }
+});
+
+app.post('/admin/login', hashCompare, (req,res) => {
+    console.log(res.locals.result);
+    if(res.locals.result.res){
+        Query.adminLogin(req.headers.email,res.locals.result.pass)
+            .then((result) => {
+                if(result[0][0]["count(*)"]!==1){
+                    res.send({success: false});
+                }
+                else{
+                    Query.getAdminId(req.headers.email)
+                            .then( id => {
+                                token=jwt.sign({ email: req.headers.email, adminId: id[0][0]["id"] }, config.get('jwtPrivateKey'));
+                                res.send({success: true, jwt: token});
+                            })
+                            .catch(err => res.status(500).send({ success: false, error: 'Internal error'}));                    
+                }
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(400).json({ success: false, error:'Bad request' });
+            });
+    }
+    else {
+        console.log('Failed to generate password');
+        res.send({ success: false, error: res.locals.result.err });
+    }
+});
+
 /*
+app.post('/user/setBalance', auth, (req,res) => {
+
+    // after settingup admin
+})
+
 
 app.post('/user/send-email', emailsender, (req,res) =>{
     console.log('Works');
