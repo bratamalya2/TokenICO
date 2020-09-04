@@ -13,7 +13,7 @@ class Query{
         values("${email}","${fname}","${mobile}","${dob}","${nationality}","${pass}");`);
     }
     adminSignup(pass,email){
-        return db.execute(`insert into dbs.admin(pwd,email) values("${pass}","${email}");`);
+        return db.execute(`insert into dbs.admin(pass,email) values("${pass}","${email}");`);
     }
     getAdminId(email){
         return db.execute(`select adminId from dbs.admin where email="${email}";`);

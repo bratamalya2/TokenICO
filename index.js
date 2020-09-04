@@ -39,8 +39,6 @@ app.post('/user/signup', hashedFun, (req,res)=>{
     }
 });
 
-app.post('/user/')
-
 app.post('/user/login', hashCompare, (req,res)=>{
     if(res.locals.result.res){
         Query.login(req.headers.email,res.locals.result.pass)
@@ -197,11 +195,6 @@ app.post('/user/send-email', emailsender, (req,res) =>{
 });
 
 
-app.post('/user/checker',(req,res)=>{
-    Query.getHashedPassword(req.headers.email)
-            .then( result => res.send({success: true, pass: result[0][0].pass}))
-            .catch( err => res.send({success: false}));
-});
 
 /*
 app.get('/user/createConfirmationLink', (req,res)=>{
