@@ -2,18 +2,21 @@ const jwt=require('jsonwebtoken');
 const config=require('config'); 
 
 function auth(req,res,next){
-    const token=req.header('x-auth-token');
+    const token=req.headers['x-auth-token'];
     if(!token)
         res.status(401).send('Access denied!');
     try{
         const decoded=jwt.verify(token,config.get('jwtPrivateKey'));
-        req.user=decoded;
+        console.log(decoded);
+        res.locals.result={ success: true, err: 'None' };
         next();
     }
     catch(e){
         console.log(e);
-        res.status(400).send('Invalid token');
+        res.locals.result={ success: false, err: 'Invalid token' };
+        next();
     }
+    return;
 }
 
 module.exports=auth;

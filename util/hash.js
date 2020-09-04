@@ -1,21 +1,47 @@
-const bcrypt=require('bcrypt');
-let result={
-    res: false,
-    resultPass: ''
-};
-async function hashFun(x){    
-    bcrypt.genSalt(12, (err, salt) => {
-        bcrypt.hash(x, salt, (err, hash) => {
+const bcrypt = require('bcrypt');
+const Query = require('./Query');
+
+function hashFun(req,res,next){   
+    const rounds = 10; 
+    bcrypt.genSalt(rounds, (err, salt) => {
+        bcrypt.hash(req.headers.pass, salt, (err, hash) => {            
             if(err){
                 console.log(err);
+                res.locals.hashed={res: false , err: err};
+                next();
             }
             else{
-                result = {res: true, resultPass: hash};
-            }
+                res.locals.hashed=({res: true, resultPass: hash});
+                next();
+            }   
+            return;     
         });
     });
-    return result;
+};
+
+
+function hashCompare(req,res,next){
+    Query.getHashedPassword(req.headers.email)
+            .then( result => { 
+                var x=result[0][0]["pass"];
+                bcrypt.compare(req.headers.pass, x, function(err, result) {
+                    if(result){
+                        res.locals.result = {res: true, pass: x}; 
+                        next(); 
+                    }
+                    else{
+                        res.locals.result = { res: false, err: 'Invalid credentials'};
+                        next();
+                    }
+                });                
+            })
+            .catch( err => { 
+                res.locals.result = {res: false, err: 'Failed to generate hash'}; 
+                next(); 
+            });
+    return;    
 }
 
 
-module.exports.hashFun=hashFun;
+module.exports.hashFun = hashFun;
+module.exports.hashCompare = hashCompare;
