@@ -1,12 +1,3 @@
-/*
-
-To export for production create ENV variables (export for mac/ set for win):
-
-    set TokenICO_jwtPrivateKey = <your key>
-    set node_env=development&&nodemon index.js
-
-*/
-
 const express=require('express');
 const helmet = require('helmet');
 const config = require('config');
