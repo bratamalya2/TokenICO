@@ -39,6 +39,8 @@ app.post('/user/signup', hashedFun, (req,res)=>{
     }
 });
 
+app.post('/user/')
+
 app.post('/user/login', hashCompare, (req,res)=>{
     if(res.locals.result.res){
         Query.login(req.headers.email,res.locals.result.pass)
@@ -47,8 +49,12 @@ app.post('/user/login', hashCompare, (req,res)=>{
                     res.send({success: false});
                 }
                 else{
-                    token=jwt.sign({ email: req.headers.email }, config.get('jwtPrivateKey'));
-                    res.send({success: true, jwt: token});
+                    Query.getUserId(req.headers.email)
+                            .then( id => {
+                                token=jwt.sign({ email: req.headers.email, userId: id[0][0]["id"] }, config.get('jwtPrivateKey'));
+                                res.send({success: true, jwt: token});
+                            })
+                            .catch(err => res.status(500).send({ success: false, error: 'Internal error'}));                    
                 }
             })
             .catch(err => {
@@ -95,7 +101,7 @@ app.get('/user/isEmailConfirmed', auth, (req,res) => {
 app.post('/user/confirmUserEmail', auth, (req,res) => {
     console.log('send email now!');
     if(res.locals.result.success == true){
-        Query.setEmailVerification(req.headers.userId)
+        Query.setEmailVerification(res.locals.result.userId)
                 .then(() => {
                     res.send( { success: true } );                
                 })

@@ -20,11 +20,13 @@ class Query{
     reset(email,pass){
         return db.execute(`update dbs.users set pass="${pass}" where email="${email}";`);
     }
+    getUserId(email){
+        return db.execute(`select id from dbs.users where email="${email}";`);
+    }
     createConfirmation(userId){
         return db.execute(`insert into dbs.confirmations(id) values("${userId}");`);
     }
     setEmailVerification(userId){
-        console.log(userId);
         return db.execute(`update dbs.users set emailVerified="1" where id="${userId}";`);
     }
 }
