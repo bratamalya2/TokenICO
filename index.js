@@ -22,6 +22,10 @@ app.use(cors());
 app.use(helmet());
 let token;
 
+/*
+        SignUp, Login APIs
+*/
+
 app.post('/user/signup', hashedFun, (req,res)=>{
     if(res.locals.hashed.res){
         Query.signup(res.locals.hashed.resultPass,req.headers.fname,req.headers.dob,req.headers.email,req.headers.mobile,req.headers.nationality)
@@ -50,7 +54,14 @@ app.post('/user/login', hashCompare, (req,res)=>{
                     Query.getUserId(req.headers.email)
                             .then( id => {
                                 token=jwt.sign({ email: req.headers.email, userId: id[0][0]["id"] }, config.get('jwtPrivateKey'));
-                                res.send({success: true, jwt: token});
+                                Query.updateLastLogin(req.headers.email, Date.now())
+                                    .then(() => { 
+                                        res.send({success: true, jwt: token});
+                                    })
+                                    .catch((err) => {
+                                        console.log(err);
+                                        res.status(500).send({success: false, error: 'Internal server error'});
+                                    });
                             })
                             .catch(err => res.status(500).send({ success: false, error: 'Internal error'}));                    
                 }
@@ -156,7 +167,6 @@ app.post('/admin/signup', hashedFun, (req,res) => {
 });
 
 app.post('/admin/login', hashCompare, (req,res) => {
-    console.log(res.locals.result);
     if(res.locals.result.res){
         Query.adminLogin(req.headers.email,res.locals.result.pass)
             .then((result) => {
@@ -182,6 +192,41 @@ app.post('/admin/login', hashCompare, (req,res) => {
         res.send({ success: false, error: res.locals.result.err });
     }
 });
+
+/*
+
+        User details
+
+*/
+
+app.get('/user/getUserDetails', auth, (req,res) => {    
+    if(res.locals.result.success == true){
+        Query.getUserDetails(res.locals.result.userId)
+            .then(arr => {
+                let dob=arr[0][0]["DOB"].toString().substring(4,15);
+                res.send({
+                    success: true, 
+                    id: arr[0][0]["id"],
+                    balance: arr[0][0]["balance"],
+                    emailVerified: arr[0][0]["emailVerified"],
+                    kycVerified: arr[0][0]["kysVerified"],
+                    address: arr[0][0]["address"],
+                    email: arr[0][0]["email"],
+                    fullname: arr[0][0]["fullname"],
+                    mobile: arr[0][0]["mobile"],
+                    DOB: dob,
+                    nationality: arr[0][0]["nationality"],
+                    lastlogin: arr[0][0]["lastLogin"],
+                    tokenId: arr[0][0]["tokenId"]
+                });
+            })
+            .catch(err => {
+                console.log(err);
+                res.status(400).send({success: false});
+            });
+    }
+});
+
 
 /*
 app.post('/user/setBalance', auth, (req,res) => {
