@@ -54,6 +54,26 @@ class Query{
     getUserDetails(userId){
         return db.execute(`select * from dbs.users where id="${userId}";`);
     }
+
+    addToken(name, symbol, decimalMin, decimalMax, kycBeforePurchase, adminId){
+        return db.execute(`insert into dbs.token(name,symbol,decimalMin,decimalMax,kycBeforePurchase,adminId) values ("${name}","${symbol}","${decimalMin}","${decimalMax}","${kycBeforePurchase}","${adminId}") ;`);
+    }
+    createTxn(amt,from,to,type,timestamp,status,tokenId){
+        return db.execute(`insert into dbs.txn(tokensamt,fromAddress,toAddress,txnType,txnTimestamp,txnStatus,tokenId) 
+        values("${amt}","${from}","${to}","${type}","${timestamp}","${status}","${tokenId}");`);
+    }
+    getLatestTxnId(){
+        return db.execute(`select no from dbs.txn order by no desc;`);
+    }
+    confirmTxn(txnId){
+        return db.execute(`update dbs.txn set txnStatus="Confirmed" where no="${txnId}";`);
+    }
+    getLatestTxnUser(addr){
+        return db.execute(`select * from dbs.txn where fromAddress="${addr}" or toAddress="${addr}" order by no desc;`);
+    }
+    getLatestTxnAdmin(){
+        return db.execute(`select * from dbs.txn order by no desc;`);
+    }
 }
 
 module.exports=new Query();

@@ -2,16 +2,16 @@ const express=require('express');
 const helmet = require('helmet');
 const config = require('config');
 const Hash = require('./util/hash');
-const getPass = require('./util/getPass').getPass;
 const cors = require('cors');
+const { readdirSync } = require('fs');
+const { SlowBuffer } = require('buffer');
+
+const getPass = require('./util/getPass').getPass;
 const jwt=require('jsonwebtoken');
 const Query=require('./util/Query.js');
-const { readdirSync } = require('fs');
-
 const auth = require('./util/auth');
+const adminAuth = require('./util/adminAuth');
 const emailsender = require('./util/send-email');
-
-const { SlowBuffer } = require('buffer');
 
 const hashedFun = Hash.hashFun;
 const hashCompare = Hash.hashCompare;
@@ -20,7 +20,7 @@ const app=express();
 
 app.use(cors());
 app.use(helmet());
-let token;
+//let token;
 
 /*
         SignUp, Login APIs
@@ -134,6 +134,9 @@ app.post('/user/confirmUserEmail', auth, (req,res) => {
                     res.status(400).json({ success: false, error:'Bad request' });
                 });
     }
+    else{
+        res.status(400).send({ success: false, error: 'Invalid token' });
+    }
 });
 
 app.post('/user/reset', hashedFun, (req,res)=>{
@@ -167,6 +170,7 @@ app.post('/admin/signup', hashedFun, (req,res) => {
 });
 
 app.post('/admin/login', hashCompare, (req,res) => {
+    let token;
     if(res.locals.result.res){
         Query.adminLogin(req.headers.email,res.locals.result.pass)
             .then((result) => {
@@ -176,7 +180,8 @@ app.post('/admin/login', hashCompare, (req,res) => {
                 else{
                     Query.getAdminId(req.headers.email)
                             .then( id => {
-                                token=jwt.sign({ email: req.headers.email, adminId: id[0][0]["id"] }, config.get('jwtPrivateKey'));
+                                token=jwt.sign({ email: req.headers.email, adminId: id[0][0]["adminId"] }, config.get('jwtPrivateKey'));
+                                console.log("token: ",token);
                                 res.send({success: true, jwt: token});
                             })
                             .catch(err => res.status(500).send({ success: false, error: 'Internal error'}));                    
@@ -209,7 +214,7 @@ app.get('/user/getUserDetails', auth, (req,res) => {
                     id: arr[0][0]["id"],
                     balance: arr[0][0]["balance"],
                     emailVerified: arr[0][0]["emailVerified"],
-                    kycVerified: arr[0][0]["kysVerified"],
+                    kycVerified: arr[0][0]["kycVerified"],
                     address: arr[0][0]["address"],
                     email: arr[0][0]["email"],
                     fullname: arr[0][0]["fullname"],
@@ -222,11 +227,84 @@ app.get('/user/getUserDetails', auth, (req,res) => {
             })
             .catch(err => {
                 console.log(err);
-                res.status(400).send({success: false});
+                res.status(400).send({success: false, error: 'User doesnot exist!'});
             });
     }
+    else
+        res.status(400).send({ success: false, error: 'Invalid token' });
 });
 
+/*
+    create Transaction
+*/
+
+app.post('/admin/addNewToken', adminAuth, (req,res) => {
+    console.log(res.locals.result);
+    if(res.locals.result.success == true){
+        Query.addToken(req.headers.name, req.headers.symbol, req.headers.decimalmin, 
+                        req.headers.decimalmax, req.headers.kycbeforepurchase, res.locals.result.adminId)
+                .then(() => res.send({ success: true, error: 'None' }))
+                .catch( err => res.status(400).send({ success: false, error: err}));
+    }
+    else 
+        res.status(400).send({ success: false, error: 'Invalid token' });
+});
+
+app.post('/user/createTxn', auth, (req,res) => {
+    console.log('Accept payment and proceed!');
+    if(res.locals.result.success == true){
+        Query.createTxn(req.headers.amount,req.headers.from,req.headers.to, req.headers.type,
+                        req.headers.timestamp,req.headers.status,req.headers.tokenid)
+                .then(()=> {
+                    Query.getLatestTxnId()
+                        .then((x) => res.send({ success: true, txnId: x[0][0]["no"]}))
+                        .catch( err => res.status(500).send({ success: false, error: err}));
+                })
+                .catch(err => { console.log(err); res.status(500).send({ success: false, error: err }) });
+    }
+    else
+        res.status(400).send({ success: false, error: 'Invalid token' });
+});
+
+app.post('/admin/confirmTxn', adminAuth, (req,res) => {
+    console.log(res.locals.result);
+    if(res.locals.result.success == true){
+        Query.confirmTxn(req.headers.txnid)
+            .then(() => res.send( { success: true, error:'none' }))
+            .catch(err => res.status(500).send( { success: false, error: err} ));
+    }
+    else
+        res.status(400).send('Invalid admin credentials!');
+});
+
+// get Transactions
+
+app.get('/user/getTransactions', auth, (req,res) => {
+    if(res.locals.result.success == true){
+        Query.getLatestTxnUser(req.headers.addr)
+                .then(arr => { 
+                    //console.log(arr[0][0]);  
+                    res.send({success: true, res: arr[0][0]});
+                })
+                .catch(err => {
+                    console.log(err);
+                    res.status(400).send({success: false, error: err});            
+                });
+    }
+    else
+        res.status(400).send({success: false, error: 'Invalid user'});
+});
+
+app.get('/admin/getTransactions', adminAuth, (req,res) => {
+    Query.getLatestTxnAdmin()
+        .then((arr) => { 
+            res.send({ success: true, res: arr[0] });
+        })
+        .catch( err => { 
+            console.log(err);
+            res.status(400).send( { success: false, error: err } );
+        });
+});
 
 /*
 app.post('/user/setBalance', auth, (req,res) => {
