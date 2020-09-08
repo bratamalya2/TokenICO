@@ -369,6 +369,18 @@ app.post('/admin/setPaymentMethod', adminAuth, (req,res) => {
         res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
 });
 
+app.post('/admin/setWebSettings', adminAuth, (req,res) => {
+    // (url,timeZone,dateFormat,maintenanceMode,adminId,tokenId)
+    if(res.locals.result.success == true){
+        Query.setWebsiteSettings(req.headers.url,req.headers.timezone,req.headers.dateformat,
+            req.headers.maintenancemode,res.locals.result.adminId,req.headers.tokenid)
+                .then(() =>  res.send({ success: true, error: 'none' }))
+                .catch( err => res.status(400).send({ success: false, error: 'none' }));
+    }
+    else
+        res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
+});
+
 /*
 app.post('/user/send-email', emailsender, (req,res) =>{
     console.log('Works');

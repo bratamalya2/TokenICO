@@ -93,6 +93,10 @@ class Query{
         return db.execute(`insert into dbs.adminpaymentsconfig(title,description,ethWalletStatus,bitcoinWalletStatus,ethGasPrice,ethGasLimit,tokenId,adminId,ethAddress,bitcoinAddress) 
         values("${title}","${description}","${ethWalletStatus}","${bitcoinWalletStatus}","${ethGasPrice}","${ethGasLimit}","${tokenId}","${adminId}","${ethAddress}","${bitcoinAddress}");`);
     }
+    setWebsiteSettings(url,timeZone,dateFormat,maintenanceMode,adminId,tokenId){
+        return db.execute(`insert into dbs.websettings 
+        values("${url}","${timeZone}","${dateFormat}","${maintenanceMode}","${adminId}","${tokenId}");`);
+    }
 }
 
 module.exports=new Query();
