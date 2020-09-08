@@ -354,20 +354,26 @@ app.get('/admin/getTokenSaleInfo', adminAuth, (req,res) => {
     else
         res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
 });
+
+
+app.post('/admin/setPaymentMethod', adminAuth, (req,res) => {
+    // title,description,ethWalletStatus,bitcoinWalletStatus,ethGasPrice,ethGasLimit,tokenId,adminId
+    if(res.locals.result.success == true){
+        Query.setPaymentMethod(req.headers.title,req.headers.description,req.headers.ethwalletstatus,req.headers.bitcoinwalletstatus,
+            req.headers.ethgasprice,req.headers.ethgaslimit,req.headers.tokenid,res.locals.result.adminId,
+            req.headers.ethaddress,req.headers.bitcoinaddress)
+                .then(() => { res.send({ success: true, error: 'none'}) })
+                .catch( err => res.status(400).send({ success: false, error: err }));
+    }
+    else
+        res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
+});
+
 /*
-app.post('/user/setBalance', auth, (req,res) => {
-
-    // after settingup admin
-})
-
-
 app.post('/user/send-email', emailsender, (req,res) =>{
     console.log('Works');
 });
 
-
-
-/*
 app.get('/user/createConfirmationLink', (req,res)=>{
     // req.headers.userId
     Query.createConfirmation(req.headers.userId)

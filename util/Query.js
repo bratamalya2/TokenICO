@@ -89,6 +89,10 @@ class Query{
     getTokenStage(tokenId){
         return db.execute(`select * from dbs.tokensales where tokenId="${tokenId}";`);
     }
+    setPaymentMethod(title,description,ethWalletStatus,bitcoinWalletStatus,ethGasPrice,ethGasLimit,tokenId,adminId,ethAddress,bitcoinAddress){
+        return db.execute(`insert into dbs.adminpaymentsconfig(title,description,ethWalletStatus,bitcoinWalletStatus,ethGasPrice,ethGasLimit,tokenId,adminId,ethAddress,bitcoinAddress) 
+        values("${title}","${description}","${ethWalletStatus}","${bitcoinWalletStatus}","${ethGasPrice}","${ethGasLimit}","${tokenId}","${adminId}","${ethAddress}","${bitcoinAddress}");`);
+    }
 }
 
 module.exports=new Query();
