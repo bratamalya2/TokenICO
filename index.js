@@ -28,7 +28,7 @@ app.use(helmet());
 
 app.post('/user/signup', hashedFun, (req,res)=>{
     if(res.locals.hashed.res){
-        Query.signup(res.locals.hashed.resultPass,req.headers.fname,req.headers.dob,req.headers.email,req.headers.mobile,req.headers.nationality)
+        Query.signup(res.locals.hashed.resultPass,req.headers.fname,req.headers.dob,req.headers.email,req.headers.mobile,req.headers.nationality,req.headers.tokenid)
             .then(() => {
                 res.send({success: true});
             })
@@ -51,9 +51,9 @@ app.post('/user/login', hashCompare, (req,res)=>{
                     res.send({success: false});
                 }
                 else{
-                    Query.getUserId(req.headers.email)
-                            .then( id => {
-                                token=jwt.sign({ email: req.headers.email, userId: id[0][0]["id"] }, config.get('jwtPrivateKey'));
+                    Query.getUserIdTokenId(req.headers.email)
+                            .then( id_arr => {
+                                token=jwt.sign({ email: req.headers.email, userId: id_arr[0][0]["id"], tokenId: id_arr[0][0]["tokenId"] }, config.get('jwtPrivateKey'));
                                 Query.updateLastLogin(req.headers.email, Date.now())
                                     .then(() => { 
                                         res.send({success: true, jwt: token});
@@ -108,7 +108,12 @@ app.get('/user/checkAdminExists', (req,res)=>{
 });
 
 app.get('/user/isEmailConfirmed', auth, (req,res) => {
-    Query.isEmailVerified(req.query.userId)
+    let x;
+    if(res.locals.result.success == true)   
+        x=res.locals.result.email;
+    else 
+        x=req.headers.email;
+    Query.isEmailVerified(x)
             .then((result) => {
                 if(result[0][0]["emailVerified"]===0){
                     res.send({success: false});
@@ -306,6 +311,49 @@ app.get('/admin/getTransactions', adminAuth, (req,res) => {
         });
 });
 
+app.post('/user/submitKyc', auth, (req,res) => {
+    if(res.locals.result.success == true){
+        Query.submitKyc(res.locals.result.email,res.locals.result.userId,req.headers.doctype,
+                        req.headers.doclink,req.headers.timestamp,req.headers.status)
+                    .then(() => res.send( { success: true, error: 'none' } ))
+                    .catch( err => res.status(500).send( { success: false, error: err } ));
+    }
+    else 
+        res.status(400).send( { success: false, error: 'Invalid token' } );
+});
+
+app.get('/admin/getKyc', adminAuth, (req,res) => {
+    if(res.locals.result.success == true){
+        Query.getKyc()
+                .then((arr) => { res.send({success: true, res: arr[0]})})
+                .catch( err => res.status(500).send({ success: false, error: err }));
+    }
+    else
+        res.status(400).send({ success: false, error: 'Invalid admin credentials!' });
+});
+
+app.post('/admin/createTokenSale', adminAuth, (req,res) => {
+    if(res.locals.result.success == true){
+        Query.createTokenStage(req.headers.tokenid,req.headers.tokenissued,req.headers.endtimestamp,req.headers.softcap,
+            req.headers.hardcap,req.headers.stagename,req.headers.starttimestamp,req.headers.basebonus,req.headers.baseprice,
+            req.headers.mintxn,req.headers.maxtxn)
+            .then(() => res.send({ success: true, error: 'none' }))
+            .catch(err => res.status(400).send({ success: false, error: err }));
+    }
+    else{
+        res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
+    }
+});
+
+app.get('/admin/getTokenSaleInfo', adminAuth, (req,res) => {
+    if(res.locals.result.success == true){
+        Query.getTokenStage(req.headers.tokenid)
+            .then((arr) => res.send({ success: true, res: arr[0] }))
+            .catch( err => res.status(400).send({ success: false, error: err }));
+    }
+    else
+        res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
+});
 /*
 app.post('/user/setBalance', auth, (req,res) => {
 

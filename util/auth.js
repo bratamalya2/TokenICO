@@ -3,11 +3,9 @@ const config=require('config');
 
 function auth(req,res,next){
     const token=req.headers['x-auth-token'];
-    if(!token)
-        res.status(401).send('Access denied!');
     try{
         const decoded=jwt.verify(token,config.get('jwtPrivateKey'));
-        res.locals.result={ success: true, err: 'None', userId: decoded.userId};
+        res.locals.result={ success: true, err: 'None', email: decoded.email, userId: decoded.userId};
         next();
     }
     catch(e){
