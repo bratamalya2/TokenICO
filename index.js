@@ -16,6 +16,7 @@ const emailsender = require('./util/send-email');
 const hashedFun = Hash.hashFun;
 const hashCompare = Hash.hashCompare;
 
+const port = process.env.PORT || 3005;
 const app=express();
 
 app.use(cors());
@@ -41,6 +42,10 @@ app.post('/user/signup', hashedFun, (req,res)=>{
         console.log('Failed to generate password');
         res.send({success: false, error: 'Failed to generate password'});
     }
+});
+
+app.post('/user/updateProfile', auth, (req,res) => {
+    
 });
 
 app.post('/user/login', hashCompare, (req,res)=>{
@@ -410,4 +415,6 @@ app.post('/user/createConfirmationLink', (req,res) => {
 });
 */
 
-app.listen(3005);
+app.listen(port, () => {
+    console.log(`Server running at port `+port);
+});
