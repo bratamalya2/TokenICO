@@ -10,9 +10,12 @@ class Query{
     adminLogin(email,pass){
         return db.execute(`select count(*) from dbs.admin where strcmp(email,"${email}")=0 and strcmp(pass,"${pass}")=0;`);
     }
-    signup(pass,fname,dob,email,mobile,nationality,tokenId){
-        return db.execute(`insert into dbs.users(email,fullname,mobile,DOB,nationality,pass,tokenId) 
-        values("${email}","${fname}","${mobile}","${dob}","${nationality}","${pass}","${tokenId}");`);
+    updateUserDetails(email,fname,dob,mobile,nationality,tokenId){
+        return db.execute(`update dbs.users set fullname="${fname}", mobile="${mobile}",DOB="${dob}",
+        nationality="${nationality}",tokenId="${tokenId}" where strcmp(email,"${email}")=0;`);
+    }
+    signup(email,pass,fname){
+        return db.execute(`insert into dbs.users(email,pass,fullname) values("${email}","${pass}","${fname}");`);
     }
     adminSignup(pass,email){
         return db.execute(`insert into dbs.admin(pass,email) values("${pass}","${email}");`);

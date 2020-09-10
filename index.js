@@ -29,7 +29,7 @@ app.use(helmet());
 
 app.post('/user/signup', hashedFun, (req,res)=>{
     if(res.locals.hashed.res){
-        Query.signup(res.locals.hashed.resultPass,req.headers.fname,req.headers.dob,req.headers.email,req.headers.mobile,req.headers.nationality,req.headers.tokenid)
+        Query.signup(req.headers.email,res.locals.hashed.resultPass,req.headers.fname)
             .then(() => {
                 res.send({success: true});
             })
@@ -44,8 +44,15 @@ app.post('/user/signup', hashedFun, (req,res)=>{
     }
 });
 
-app.post('/user/updateProfile', auth, (req,res) => {
-    
+app.post('/user/updateProfile', auth, (req,res) => {    
+    // (email,fname,dob,mobile,nationality,tokenId)
+    if(res.locals.result.success == true)
+        Query.updateUserDetails(res.locals.result.email, req.headers.fname, req.headers.dob, req.headers.mobile,
+            req.headers.nationality, req.headers.tokenid)
+                .then( () => res.send({ success: true, error: 'none' }))   
+                .catch( err => res.status(400).send({ success: false, error: err }));
+    else
+            res.status(400).send({ success: false, error: 'Invalid token'});
 });
 
 app.post('/user/login', hashCompare, (req,res)=>{

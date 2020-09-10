@@ -7,6 +7,7 @@ SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,N
 -- -----------------------------------------------------
 -- Schema dbs
 -- -----------------------------------------------------
+DROP SCHEMA IF EXISTS `dbs` ;
 
 -- -----------------------------------------------------
 -- Schema dbs
@@ -41,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `dbs`.`token` (
   `decimalMax` INT UNSIGNED NOT NULL,
   `kycBeforePurchase` TINYINT NOT NULL DEFAULT '0',
   `adminId` INT UNSIGNED NOT NULL,
-  PRIMARY KEY (`tokenID`),
+  PRIMARY KEY (`tokenID`, `adminId`),
   UNIQUE INDEX `symbol_UNIQUE` (`symbol` ASC) VISIBLE,
   UNIQUE INDEX `name_UNIQUE` (`name` ASC) VISIBLE,
   UNIQUE INDEX `adminId_UNIQUE` (`adminId` ASC) VISIBLE,
@@ -67,10 +68,14 @@ CREATE TABLE IF NOT EXISTS `dbs`.`adminpaymentsconfig` (
   `ethGasLimit` INT UNSIGNED NOT NULL,
   `tokenID` INT UNSIGNED NOT NULL,
   `adminId` INT UNSIGNED NOT NULL,
+  `ethAddress` VARCHAR(70) NULL DEFAULT NULL,
+  `bitcoinAddress` VARCHAR(70) NULL DEFAULT NULL,
   PRIMARY KEY (`title`),
   UNIQUE INDEX `title_UNIQUE` (`title` ASC) VISIBLE,
   UNIQUE INDEX `tokenID_UNIQUE` (`tokenID` ASC) VISIBLE,
   UNIQUE INDEX `adminId_UNIQUE` (`adminId` ASC) VISIBLE,
+  UNIQUE INDEX `ethAddress_UNIQUE` (`ethAddress` ASC) VISIBLE,
+  UNIQUE INDEX `bitcoinAddress_UNIQUE` (`bitcoinAddress` ASC) VISIBLE,
   CONSTRAINT `admin_id2`
     FOREIGN KEY (`adminId`)
     REFERENCES `dbs`.`admin` (`adminId`)
@@ -97,17 +102,18 @@ CREATE TABLE IF NOT EXISTS `dbs`.`users` (
   `address` VARCHAR(70) NULL DEFAULT NULL,
   `email` VARCHAR(50) NOT NULL,
   `fullname` VARCHAR(50) NOT NULL,
-  `mobile` VARCHAR(15) NOT NULL,
-  `DOB` DATE NOT NULL,
-  `nationality` VARCHAR(25) NOT NULL,
+  `mobile` VARCHAR(15) NULL DEFAULT NULL,
+  `DOB` DATE NULL DEFAULT NULL,
+  `nationality` VARCHAR(25) NULL DEFAULT NULL,
   `lastLogin` VARCHAR(50) NULL DEFAULT NULL,
   `pass` VARCHAR(80) NOT NULL,
-  `tokenId` INT UNSIGNED NOT NULL,
+  `tokenId` INT UNSIGNED NULL DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE INDEX `id_UNIQUE` (`id` ASC) VISIBLE,
+  UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
   UNIQUE INDEX `address_UNIQUE` (`address` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 33
+AUTO_INCREMENT = 36
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
