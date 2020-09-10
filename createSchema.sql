@@ -5,6 +5,9 @@ SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
 -- -----------------------------------------------------
+-- Schema mydb
+-- -----------------------------------------------------
+-- -----------------------------------------------------
 -- Schema dbs
 -- -----------------------------------------------------
 DROP SCHEMA IF EXISTS `dbs` ;
@@ -22,6 +25,7 @@ CREATE TABLE IF NOT EXISTS `dbs`.`admin` (
   `adminId` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `pass` VARCHAR(200) NOT NULL,
   `email` VARCHAR(40) NOT NULL,
+  `fullname` VARCHAR(30) NULL DEFAULT NULL,
   PRIMARY KEY (`adminId`),
   UNIQUE INDEX `adminId_UNIQUE` (`adminId` ASC) VISIBLE,
   UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE)

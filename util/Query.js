@@ -17,11 +17,14 @@ class Query{
     signup(email,pass,fname){
         return db.execute(`insert into dbs.users(email,pass,fullname) values("${email}","${pass}","${fname}");`);
     }
-    adminSignup(pass,email){
-        return db.execute(`insert into dbs.admin(pass,email) values("${pass}","${email}");`);
+    adminSignup(pass,email,fname){
+        return db.execute(`insert into dbs.admin(pass,email,fullname) values("${pass}","${email}","${fname}");`);
     }
     getAdminId(email){
         return db.execute(`select adminId from dbs.admin where email="${email}";`);
+    }
+    getAdminName(email){
+        return db.execute(`select fullname from dbs.admin where email="${email}";`);
     }
     getHashedPassword(email,isAdmin){
         if(isAdmin == 'true')
@@ -43,9 +46,6 @@ class Query{
     }
     getUserIdTokenId(email){
         return db.execute(`select id,tokenId from dbs.users where email="${email}";`);
-    }
-    createConfirmation(userId){
-        return db.execute(`insert into dbs.confirmations(id) values("${userId}");`);
     }
     setEmailVerification(userId){
         return db.execute(`update dbs.users set emailVerified="1" where id="${userId}";`);

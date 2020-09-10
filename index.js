@@ -139,22 +139,29 @@ app.get('/user/isEmailConfirmed', auth, (req,res) => {
             });
 });
 
-app.post('/user/confirmUserEmail', auth, (req,res) => {
-    console.log('send email now!');
+app.post('/user/confirmUserEmail/1', auth, emailsender, (req,res) => {
+    console.log(res.locals.result)
     if(res.locals.result.success == true){
-        Query.setEmailVerification(res.locals.result.userId)
-                .then(() => {
-                    res.send( { success: true } );                
-                })
-                .catch(err => {
-                    console.log(err);
-                    res.status(400).json({ success: false, error:'Bad request' });
-                });
+        if(res.locals.result.resultEmail.success)
+            res.send( { success: true, error: 'none' , text: res.locals.result.resultEmail.text } );                
+        else
+            res.status(500).send({ success: false, error: 'Could not send email' });
     }
     else{
         res.status(400).send({ success: false, error: 'Invalid token' });
     }
 });
+
+app.post('/user/confirmUserEmail/2', auth, (req,res) => {
+    if(res.locals.result.success == true){
+        Query.setEmailVerification(res.locals.result.userId)
+            .then(() => res.send({ success: true, error: 'none'}))
+            .catch(err => res.status(400).send({ sucess: false, error: 'none' }));
+    }
+    else{
+        res.status(400).send({ success: false, error: 'Invalid token' });
+    }
+})
 
 app.post('/user/reset', hashedFun, (req,res)=>{
     if(res.locals.hashed.res == true){
@@ -171,7 +178,7 @@ app.post('/user/reset', hashedFun, (req,res)=>{
 
 app.post('/admin/signup', hashedFun, (req,res) => {
     if(res.locals.hashed.res){
-        Query.adminSignup(res.locals.hashed.resultPass, req.headers.email)
+        Query.adminSignup(res.locals.hashed.resultPass, req.headers.email, req.headers.fname)
             .then(() => {
                 res.send({success: true});
             })
@@ -197,9 +204,11 @@ app.post('/admin/login', hashCompare, (req,res) => {
                 else{
                     Query.getAdminId(req.headers.email)
                             .then( id => {
-                                token=jwt.sign({ email: req.headers.email, adminId: id[0][0]["adminId"] }, config.get('jwtPrivateKey'));
-                                console.log("token: ",token);
-                                res.send({success: true, jwt: token});
+                                Query.getAdminName(req.headers.email)
+                                        .then( fname => {
+                                            token=jwt.sign({ email: req.headers.email, fname: fname[0][0]["fullname"], adminId: id[0][0]["adminId"] }, config.get('jwtPrivateKey'));
+                                            res.send({success: true, jwt: token});
+                                        })
                             })
                             .catch(err => res.status(500).send({ success: false, error: 'Internal error'}));                    
                 }
@@ -213,6 +222,13 @@ app.post('/admin/login', hashCompare, (req,res) => {
         console.log('Failed to generate password');
         res.send({ success: false, error: res.locals.result.err });
     }
+});
+
+app.get('/admin/getAdminName', adminAuth, (req,res) => {
+    if(res.locals.result.success == true)
+        res.send({ success: true, adminName: res.locals.result.fname});
+    else
+        res.status(400).send({ success: false, error: 'Invalid admin credentials!'});
 });
 
 /*
