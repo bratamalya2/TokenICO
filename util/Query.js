@@ -18,13 +18,13 @@ class Query{
         return db.execute(`insert into dbs.users(email,pass,fullname) values("${email}","${pass}","${fname}");`);
     }
     adminSignup(pass,email,fname){
-        return db.execute(`insert into dbs.admin(pass,email,fullname) values("${pass}","${email}","${fname}");`);
+        return db.execute(`insert into dbs.admin(pass,email,adminfullname) values("${pass}","${email}","${fname}");`);
     }
     getAdminId(email){
         return db.execute(`select adminId from dbs.admin where email="${email}";`);
     }
     getAdminName(email){
-        return db.execute(`select fullname from dbs.admin where email="${email}";`);
+        return db.execute(`select adminfullname from dbs.admin where email="${email}";`);
     }
     getHashedPassword(email,isAdmin){
         if(isAdmin == 'true')
@@ -48,6 +48,7 @@ class Query{
         return db.execute(`select id,tokenId from dbs.users where email="${email}";`);
     }
     setEmailVerification(userId){
+        console.log(userId);
         return db.execute(`update dbs.users set emailVerified="1" where id="${userId}";`);
     }
     setUserBalance(userId, balance){
@@ -59,15 +60,28 @@ class Query{
     addToken(name, symbol, decimalMin, decimalMax, kycBeforePurchase, adminId){
         return db.execute(`insert into dbs.token(name,symbol,decimalMin,decimalMax,kycBeforePurchase,adminId) values ("${name}","${symbol}","${decimalMin}","${decimalMax}","${kycBeforePurchase}","${adminId}") ;`);
     }
-    createTxn(amt,from,to,type,timestamp,status,tokenId){
-        return db.execute(`insert into dbs.txn(tokensamt,fromAddress,toAddress,txnType,txnTimestamp,txnStatus,tokenId) 
-        values("${amt}","${from}","${to}","${type}","${timestamp}","${status}","${tokenId}");`);
+    addTokensForUser(){
+        //add a list of tokens for user
+    }
+    getTokensForUser(){
+        // retrieves the list of tokens for a user
+    }
+    createTxn(amt,from,to,type,timestamp,status,tokenId,payFrom){
+        return db.execute(`insert into dbs.txn(tokensamt,fromAddress,toAddress,txnType,txnTimestamp,txnStatus,tokenId,payFrom) 
+        values("${amt}","${from}","${to}","${type}","${timestamp}","${status}","${tokenId}","${payFrom}");`);
     }
     getLatestTxnId(){
         return db.execute(`select no from dbs.txn order by no desc;`);
     }
     confirmTxn(txnId){
         return db.execute(`update dbs.txn set txnStatus="Confirmed" where no="${txnId}";`);
+    }
+    getUserDetailsForAdmin(adminId){
+        return db.execute(`select fullname,u.email,balance,emailVerified,kycVerified,lastLogin 
+        from dbs.users u, dbs.admin a, dbs.token t 
+        where u.tokenId=t.tokenId 
+        and a.adminId=t.adminId 
+        and t.adminId="${adminId}";`);
     }
     updateUserBalance(amt,userId){
         return db.execute(`update dbs.users set balance="${amt}" where userId="${userId}";`);

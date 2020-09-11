@@ -34,7 +34,7 @@ const sendMail=(req, res, next) => {
     if(req.headers.text)
         mailOptions.text = req.headers.text;
     else
-        mailOptions.text = makeid(6);
+        mailOptions.text = `http://localhost:3005/user/confirmUserEmail/2?id=${res.locals.result.userId}`;
     transporter.sendMail(mailOptions, function(error, info){
         if(error){
             console.log(error);

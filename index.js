@@ -143,7 +143,7 @@ app.post('/user/confirmUserEmail/1', auth, emailsender, (req,res) => {
     console.log(res.locals.result)
     if(res.locals.result.success == true){
         if(res.locals.result.resultEmail.success)
-            res.send( { success: true, error: 'none' , text: res.locals.result.resultEmail.text } );                
+            res.send( { success: true, error: 'none' } );                
         else
             res.status(500).send({ success: false, error: 'Could not send email' });
     }
@@ -152,15 +152,14 @@ app.post('/user/confirmUserEmail/1', auth, emailsender, (req,res) => {
     }
 });
 
-app.post('/user/confirmUserEmail/2', auth, (req,res) => {
-    if(res.locals.result.success == true){
-        Query.setEmailVerification(res.locals.result.userId)
-            .then(() => res.send({ success: true, error: 'none'}))
-            .catch(err => res.status(400).send({ sucess: false, error: 'none' }));
-    }
-    else{
-        res.status(400).send({ success: false, error: 'Invalid token' });
-    }
+app.get('/user/confirmUserEmail/2', (req,res) => {
+    console.log(req);
+    Query.setEmailVerification(req.query.id)
+        .then(() => res.send({ success: true, error: 'none'}))
+        .catch(err => { 
+            console.log(err);
+            res.status(400).send({ sucess: false, error: err });
+        });
 })
 
 app.post('/user/reset', hashedFun, (req,res)=>{
@@ -287,7 +286,7 @@ app.post('/user/createTxn', auth, (req,res) => {
     console.log('Accept payment and proceed!');
     if(res.locals.result.success == true){
         Query.createTxn(req.headers.amount,req.headers.from,req.headers.to, req.headers.type,
-                        req.headers.timestamp,req.headers.status,req.headers.tokenid)
+                        req.headers.timestamp,req.headers.status,req.headers.tokenid,req.headers.payfrom)
                 .then(()=> {
                     Query.getLatestTxnId()
                         .then((x) => res.send({ success: true, txnId: x[0][0]["no"]}))
@@ -325,7 +324,7 @@ app.get('/user/getTransactions', auth, (req,res) => {
                 });
     }
     else
-        res.status(400).send({success: false, error: 'Invalid user'});
+        res.status(400).send({ success: false, error: 'Invalid user' });
 });
 
 app.get('/admin/getTransactions', adminAuth, (req,res) => {
@@ -335,8 +334,40 @@ app.get('/admin/getTransactions', adminAuth, (req,res) => {
         })
         .catch( err => { 
             console.log(err);
-            res.status(400).send( { success: false, error: err } );
+            res.status(400).send({ success: false, error: err });
         });
+});
+
+//get users
+
+app.get('/admin/getUsers', adminAuth, (req,res)=>{
+    if(res.locals.result.success == true){
+        Query.getUserDetailsForAdmin(res.locals.result.adminId)
+            .then(arr2 => { console.log(arr2); })
+            .then(arr =>{
+                let x,y;
+                console.log(arr);
+                if(arr["fullname"].length>0)
+                    x=arr["fullname"];
+                else
+                    x='';
+                if(arr["lastLogin"].length>0)
+                    y=arr["lastLogin"];
+                else
+                    y='';
+                
+                return res.send({ 
+                    user: x,
+                    email: arr["email"],
+                    tokens: arr["balance"],
+                    emailVerified: arr["emailVerified"],
+                    kycVerified: arr["kycVerified"],
+                    lastLogin: y
+                 })})
+                .catch( err => console.log(err));
+    }
+    else
+        res.status(400).send({ success: false, error: 'Invalid user' });
 });
 
 app.post('/user/submitKyc', auth, (req,res) => {
