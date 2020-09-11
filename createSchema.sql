@@ -4,13 +4,10 @@ SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0;
 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;
 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION';
 
--- -----------------------------------------------------
--- Schema mydb
--- -----------------------------------------------------
+
 -- -----------------------------------------------------
 -- Schema dbs
 -- -----------------------------------------------------
-DROP SCHEMA IF EXISTS `dbs` ;
 
 -- -----------------------------------------------------
 -- Schema dbs
@@ -25,12 +22,12 @@ CREATE TABLE IF NOT EXISTS `dbs`.`admin` (
   `adminId` INT UNSIGNED NOT NULL AUTO_INCREMENT,
   `pass` VARCHAR(200) NOT NULL,
   `email` VARCHAR(40) NOT NULL,
-  `fullname` VARCHAR(30) NULL DEFAULT NULL,
+  `adminfullname` VARCHAR(30) NULL DEFAULT NULL,
   PRIMARY KEY (`adminId`),
   UNIQUE INDEX `adminId_UNIQUE` (`adminId` ASC) VISIBLE,
   UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 4
+AUTO_INCREMENT = 5
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -56,7 +53,7 @@ CREATE TABLE IF NOT EXISTS `dbs`.`token` (
     ON DELETE CASCADE
     ON UPDATE CASCADE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 2
+AUTO_INCREMENT = 3
 DEFAULT CHARACTER SET = armscii8;
 
 
@@ -117,7 +114,7 @@ CREATE TABLE IF NOT EXISTS `dbs`.`users` (
   UNIQUE INDEX `email_UNIQUE` (`email` ASC) VISIBLE,
   UNIQUE INDEX `address_UNIQUE` (`address` ASC) VISIBLE)
 ENGINE = InnoDB
-AUTO_INCREMENT = 36
+AUTO_INCREMENT = 38
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
@@ -184,6 +181,7 @@ CREATE TABLE IF NOT EXISTS `dbs`.`txn` (
   `txnTimestamp` VARCHAR(50) NOT NULL,
   `txnStatus` VARCHAR(45) NOT NULL,
   `tokenID` INT UNSIGNED NOT NULL,
+  `payFrom` VARCHAR(45) NULL DEFAULT NULL,
   PRIMARY KEY (`no`),
   UNIQUE INDEX `no_UNIQUE` (`no` ASC) VISIBLE,
   INDEX `tokenID_idx` (`tokenID` ASC) VISIBLE,
@@ -191,7 +189,7 @@ CREATE TABLE IF NOT EXISTS `dbs`.`txn` (
     FOREIGN KEY (`tokenID`)
     REFERENCES `dbs`.`token` (`tokenID`))
 ENGINE = InnoDB
-AUTO_INCREMENT = 14
+AUTO_INCREMENT = 16
 DEFAULT CHARACTER SET = utf8mb4
 COLLATE = utf8mb4_0900_ai_ci;
 
