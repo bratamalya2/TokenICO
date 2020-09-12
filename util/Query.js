@@ -92,6 +92,9 @@ class Query{
     getLatestTxnAdmin(){
         return db.execute(`select * from dbs.txn order by no desc;`);
     }
+    submitAddress(a,id){
+        return db.execute(`update dbs.users set address="${a}" where id="${id}";`)
+    }
     submitKyc(email,userId,docType,docLink,timestamp,status){
         return db.execute(`insert into dbs.kyc(username,id,docType,docLink,submittedTimestamp,status) 
         values("${email}","${userId}","${docType}","${docLink}","${timestamp}","${status}");`);

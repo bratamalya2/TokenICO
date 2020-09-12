@@ -240,22 +240,38 @@ app.get('/user/getUserDetails', auth, (req,res) => {
     if(res.locals.result.success == true){
         Query.getUserDetails(res.locals.result.userId)
             .then(arr => {
-                let dob=arr[0][0]["DOB"].toString().substring(4,15);
-                res.send({
-                    success: true, 
-                    id: arr[0][0]["id"],
-                    balance: arr[0][0]["balance"],
-                    emailVerified: arr[0][0]["emailVerified"],
-                    kycVerified: arr[0][0]["kycVerified"],
-                    address: arr[0][0]["address"],
-                    email: arr[0][0]["email"],
-                    fullname: arr[0][0]["fullname"],
-                    mobile: arr[0][0]["mobile"],
-                    DOB: dob,
-                    nationality: arr[0][0]["nationality"],
-                    lastlogin: arr[0][0]["lastLogin"],
-                    tokenId: arr[0][0]["tokenId"]
-                });
+                let dob;
+                console.log(arr[0]); 
+                if(arr[0][0]["DOB"])
+                {
+                    dob=arr[0][0]["DOB"].toString().substring(4,15);
+                    res.send({
+                        success: true, 
+                        id: arr[0][0]["id"],
+                        balance: arr[0][0]["balance"],
+                        emailVerified: arr[0][0]["emailVerified"],
+                        kycVerified: arr[0][0]["kycVerified"],
+                        address: arr[0][0]["address"],
+                        email: arr[0][0]["email"],
+                        fullname: arr[0][0]["fullname"],
+                        mobile: arr[0][0]["mobile"],
+                        DOB: dob,
+                        nationality: arr[0][0]["nationality"],
+                        lastlogin: arr[0][0]["lastLogin"],
+                        tokenId: arr[0][0]["tokenId"]
+                    });
+                }
+                else{
+                    res.send({
+                        sucess: true,
+                        id: arr[0][0]["id"],
+                        balance: arr[0][0]["balance"],
+                        emailVerified: arr[0][0]["emailVerified"],
+                        kycVerified: arr[0][0]["kycVerified"],
+                        email: arr[0][0]["email"],
+                        fullname: arr[0][0]["fullname"]
+                    });
+                }
             })
             .catch(err => {
                 console.log(err);
@@ -368,6 +384,16 @@ app.get('/admin/getUsers', adminAuth, (req,res)=>{
     }
     else
         res.status(400).send({ success: false, error: 'Invalid user' });
+});
+
+app.post('/user/addAddress', auth, (req,res)=>{
+    if(res.locals.result.success == true){
+        Query.submitAddress(req.headers.address,res.locals.result.userId)
+            .then( () => res.send({ success: true, error: 'none' }))
+            .catch( err => res.send({ success: false, error: err }));
+    }
+    else
+        res.status(400).send( { success: false, error: 'Invalid token' } );
 });
 
 app.post('/user/submitKyc', auth, (req,res) => {
