@@ -66,15 +66,18 @@ class Query{
     getTokensForUser(){
         // retrieves the list of tokens for a user
     }
-    createTxn(amt,from,to,type,timestamp,status,tokenId,payFrom){
-        return db.execute(`insert into dbs.txn(tokensamt,fromAddress,toAddress,txnType,txnTimestamp,txnStatus,tokenId,payFrom) 
-        values("${amt}","${from}","${to}","${type}","${timestamp}","${status}","${tokenId}","${payFrom}");`);
+    createTxn(amt,from,to,type,timestamp,status,tokenId,payFrom,userId){
+        return db.execute(`insert into dbs.txn(tokensamt,fromAddress,toAddress,txnType,txnTimestamp,txnStatus,tokenId,payFrom,id) 
+        values("${amt}","${from}","${to}","${type}","${timestamp}","${status}","${tokenId}","${payFrom}","${userId}");`);
     }
     getLatestTxnId(){
         return db.execute(`select no from dbs.txn order by no desc;`);
     }
     confirmTxn(txnId){
         return db.execute(`update dbs.txn set txnStatus="Confirmed" where no="${txnId}";`);
+    }
+    cancelTxn(txnId){
+        return db.execute(`delete from dbs.txn where no="${txnId}";`);
     }
     getUserDetailsForAdmin(adminId){
         return db.execute(`select fullname,u.email,balance,emailVerified,kycVerified,lastLogin 
@@ -86,8 +89,8 @@ class Query{
     updateUserBalance(amt,userId){
         return db.execute(`update dbs.users set balance="${amt}" where userId="${userId}";`);
     }
-    getLatestTxnUser(addr){
-        return db.execute(`select * from dbs.txn where fromAddress="${addr}" or toAddress="${addr}" order by no desc;`);
+    getLatestTxnUser(id){
+        return db.execute(`select * from dbs.txn where id="${id}" order by no desc;`);
     }
     getLatestTxnAdmin(){
         return db.execute(`select * from dbs.txn order by no desc;`);

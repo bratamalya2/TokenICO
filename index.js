@@ -302,7 +302,7 @@ app.post('/user/createTxn', auth, (req,res) => {
     console.log('Accept payment and proceed!');
     if(res.locals.result.success == true){
         Query.createTxn(req.headers.amount,req.headers.from,req.headers.to, req.headers.type,
-                        req.headers.timestamp,req.headers.status,req.headers.tokenid,req.headers.payfrom)
+                        req.headers.timestamp,req.headers.status,req.headers.tokenid,req.headers.payfrom,res.locals.result.userId)
                 .then(()=> {
                     Query.getLatestTxnId()
                         .then((x) => res.send({ success: true, txnId: x[0][0]["no"]}))
@@ -325,14 +325,24 @@ app.post('/admin/confirmTxn', adminAuth, (req,res) => {
         res.status(400).send('Invalid admin credentials!');
 });
 
+app.post('/admin/cancelTxn', adminAuth, (req,res) =>{
+    if(res.locals.result.success == true){
+        Query.cancelTxn(req.headers.txnid)
+        .then(() => res.send( { success: true, error:'none' }))
+        .catch(err => res.status(500).send( { success: false, error: err} ));
+}
+else
+    res.status(400).send('Invalid admin credentials!');
+});
+
 // get Transactions
 
 app.get('/user/getTransactions', auth, (req,res) => {
     if(res.locals.result.success == true){
-        Query.getLatestTxnUser(req.headers.addr)
+        Query.getLatestTxnUser(res.locals.result.userId)
                 .then(arr => { 
-                    //console.log(arr[0][0]);  
-                    res.send({success: true, res: arr[0][0]});
+                    console.log(arr[0]);  
+                    res.send({success: true, res: arr[0]});
                 })
                 .catch(err => {
                     console.log(err);
