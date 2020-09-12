@@ -10,9 +10,9 @@ class Query{
     adminLogin(email,pass){
         return db.execute(`select count(*) from dbs.admin where strcmp(email,"${email}")=0 and strcmp(pass,"${pass}")=0;`);
     }
-    updateUserDetails(email,fname,dob,mobile,nationality,tokenId){
+    updateUserDetails(email,fname,dob,mobile,nationality,userId){
         return db.execute(`update dbs.users set fullname="${fname}", mobile="${mobile}",DOB="${dob}",
-        nationality="${nationality}",tokenId="${tokenId}" where strcmp(email,"${email}")=0;`);
+        nationality="${nationality}", email="${email}"  where strcmp(userId,"${userId}")=0;`);
     }
     signup(email,pass,fname){
         return db.execute(`insert into dbs.users(email,pass,fullname) values("${email}","${pass}","${fname}");`);
@@ -43,6 +43,11 @@ class Query{
     }
     reset(email,pass){
         return db.execute(`update dbs.users set pass="${pass}" where email="${email}";`);
+    }
+    resetInside(id,pass1,pass2){
+        console.log(pass1);
+        console.log(pass2);
+        return db.execute(`update dbs.users set pass="${pass2} where id="${id}" and strcmp(pass,"${pass1}")=0;`);
     }
     getUserIdTokenId(email){
         return db.execute(`select id,tokenId from dbs.users where email="${email}";`);

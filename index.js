@@ -14,6 +14,7 @@ const adminAuth = require('./util/adminAuth');
 const emailsender = require('./util/send-email');
 
 const hashedFun = Hash.hashFun;
+const updatePassHashFun = Hash.updatePassHashFun;
 const hashCompare = Hash.hashCompare;
 
 const port = process.env.PORT || 3005;
@@ -45,15 +46,28 @@ app.post('/user/signup', hashedFun, (req,res)=>{
 });
 
 app.post('/user/updateProfile', auth, (req,res) => {    
-    // (email,fname,dob,mobile,nationality,tokenId)
-    if(res.locals.result.success == true)
-        Query.updateUserDetails(res.locals.result.email, req.headers.fname, req.headers.dob, req.headers.mobile,
-            req.headers.nationality, req.headers.tokenid)
+    if(res.locals.result.success == true){   
+        let x=req.headers.email | res.locals.result.email;
+        Query.updateUserDetails(x, req.headers.fname, req.headers.dob, req.headers.mobile,
+            req.headers.nationality, res.locals.result.userId)
                 .then( () => res.send({ success: true, error: 'none' }))   
                 .catch( err => res.status(400).send({ success: false, error: err }));
+    }
     else
-            res.status(400).send({ success: false, error: 'Invalid token'});
+        res.status(400).send({ success: false, error: 'Invalid token'});
 });
+
+app.post('/user/resetInside', updatePassHashFun, (req,res) => {
+    //work on hashed
+    if(res.locals.result.success == true){ 
+        console.log( req.headers.passOriginal,  req.headers.passNew);
+        Query.resetInside(res.locals.result.success.userId, res.locals.result.resultPass1, res.locals.result.resultPass2)
+            .then( () => res.send({ success: true, error: 'none'}))
+            .catch(err => res.status(400).send({ success: false, error: err}));
+    }
+    else    
+        res.status(400).send({ success: false, error: 'Invalid token'}); 
+})
 
 app.post('/user/login', hashCompare, (req,res)=>{
     if(res.locals.result.res){

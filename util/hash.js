@@ -19,6 +19,35 @@ function hashFun(req,res,next){
     });
 };
 
+function updatePassHashFun(req,res,next){
+    const rounds = 10; 
+    bcrypt.genSalt(rounds, (err, salt) => {
+        bcrypt.hash(req.headers.passOriginal, salt, (err, hash) => {            
+            if(err){
+                console.log(err);
+                res.locals.hashed={res: false , err: err};
+                next();
+            }
+            else{
+                res.locals.hashed=({res: true, resultPass1: hash, resultPass2: ''});
+                bcrypt.hash(req.headers.passOriginal, salt, (err, hash) => {            
+                    if(err){
+                        console.log(err);
+                        res.locals.hashed={res: false , err: err};
+                        next();
+                    }
+                    else{
+                        res.locals.hashed.resultPass2=hash;
+                        next();
+                    }   
+                    return;     
+                });
+                next();
+            }   
+            return;     
+        });
+    });
+}
 
 function hashCompare(req,res,next){
     Query.getHashedPassword(req.headers.email,req.headers.isadmin)
@@ -45,3 +74,4 @@ function hashCompare(req,res,next){
 
 module.exports.hashFun = hashFun;
 module.exports.hashCompare = hashCompare;
+module.exports.updatePassHashFun = updatePassHashFun; 
